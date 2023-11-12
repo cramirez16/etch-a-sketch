@@ -23,7 +23,7 @@ const pickrPen = Pickr.create({
 
   components: {
     // Main components
-    preview: true,
+    preview: false,
     opacity: true,
     hue: true,
 
@@ -65,7 +65,7 @@ const pickrBackground = Pickr.create({
 
   components: {
     // Main components
-    preview: true,
+    preview: false,
     opacity: true,
     hue: true,
 
@@ -87,22 +87,17 @@ const buttons = {
   draw: document.querySelector("#draw"),
   fill: document.querySelector("#fill"),
   sample: document.querySelector("#sample"),
-  rubber: document.querySelector("#rubber"),
+  eraser: document.querySelector("#eraser"),
   ligthen: document.querySelector("#ligthen"),
   darken: document.querySelector("#darken"),
 };
 
 function restoreButtons() {
   for (const buttonKey in buttons) {
-    buttons[buttonKey].style.background = "#FFFFFF";
+    buttons[buttonKey].style.background = "rgb(108, 108, 108)";
+    buttons[buttonKey].style.color = "rgb(230, 214, 187)";
   }
-  setup = {
-    paint: false,
-    draw: false,
-    rubber: false,
-    ligthen: false,
-    darken: false,
-  };
+  paint = false;
 }
 
 function updateFooter() {
@@ -153,9 +148,9 @@ function removeBoardListener(boardCells) {
     cell.removeEventListener("mousedown", drawEvents.mouseDown);
     cell.removeEventListener("mousedown", drawEvents.mouseUp);
     cell.removeEventListener("click", sampleEvents.mouseClick);
-    cell.removeEventListener("mouseenter", rubberEvents.mouseEnter);
-    cell.removeEventListener("mousedown", rubberEvents.mouseDown);
-    cell.removeEventListener("mouseup", rubberEvents.mouseUp);
+    cell.removeEventListener("mouseenter", eraserEvents.mouseEnter);
+    cell.removeEventListener("mousedown", eraserEvents.mouseDown);
+    cell.removeEventListener("mouseup", eraserEvents.mouseUp);
     cell.removeEventListener("mouseenter", lighterEvents.mouseEnter);
     cell.removeEventListener("mousedown", lighterEvents.mouseDown);
     cell.removeEventListener("mouseup", lighterEvents.mouseUp);
@@ -163,16 +158,6 @@ function removeBoardListener(boardCells) {
     cell.removeEventListener("mousedown", darkerEvents.mouseDown);
     cell.removeEventListener("mouseup", darkerEvents.mouseUp);
   });
-}
-
-function drawing(target) {
-  const gnd = document.querySelector(".container_pen>.pickr>button");
-  const pickerColorAttribute = gnd.getAttribute("style");
-  const pickerFillColor = pickerColorAttribute.slice(
-    pickerColorAttribute.indexOf("rgba"),
-    pickerColorAttribute.length - 1
-  );
-  target.style.background = pickerFillColor;
 }
 
 function filling(boardCells) {
@@ -186,71 +171,56 @@ function filling(boardCells) {
   boardCells.forEach((cell) => (cell.style.background = pickerFillColor));
 }
 
-function sampling(target) {
-  let sampledColor = target.style.background;
-  if (!sampledColor) return;
-  if (!sampledColor.includes("rgba")) {
-    sampledColor = sampledColor.replace("rgb", "rgba").replace(")", ", 1)");
+function updateAlphaChannel(target, option) {
+  // option === true  -> inc bright / alpha channel
+  // option === false -> dec bright / alpha channel
+  let cellBackgroundColor = target.style.background;
+  if (!cellBackgroundColor) return;
+  if (!cellBackgroundColor.includes("rgba")) {
+    cellBackgroundColor = cellBackgroundColor
+      .replace("rgb", "rgba")
+      .replace(")", ", 1)");
   }
+  const alphaChannelStr = cellBackgroundColor.slice(
+    cellBackgroundColor.lastIndexOf(",") + 1,
+    cellBackgroundColor.length - 1
+  );
+  let alphaChannelNum =
+    Math.round((Number(alphaChannelStr) + (option ? -0.1 : 0.1)) * 10) / 10;
+  alphaChannelNum < 0
+    ? (alphaChannelNum = 0)
+    : alphaChannelNum > 1
+    ? (alphaChannelNum = 1)
+    : null;
+  cellBackgroundColor = cellBackgroundColor.replace(
+    `${alphaChannelStr})`,
+    `${alphaChannelNum.toString()})`
+  );
+  target.style.background = cellBackgroundColor;
+}
+
+function drawing(target) {
   const gnd = document.querySelector(".container_pen>.pickr>button");
-  gnd.setAttribute("style", sampledColor);
-  const root = document.documentElement;
-  root.style.setProperty("--pcr-color", sampledColor);
-}
-
-function rubbing(target) {
-  target.style.background = "";
-}
-
-function lighting(target) {
-  let sampledColor = target.style.background;
-  if (!sampledColor) return;
-  if (!sampledColor.includes("rgba")) {
-    sampledColor = sampledColor.replace("rgb", "rgba").replace(")", ", 1)");
-  }
-  const alpha = sampledColor.slice(
-    sampledColor.lastIndexOf(",") + 1,
-    sampledColor.length - 1
+  const pickerColorAttribute = gnd.getAttribute("style");
+  const pickerFillColor = pickerColorAttribute.slice(
+    pickerColorAttribute.indexOf("rgba"),
+    pickerColorAttribute.length - 1
   );
-  let alphaNum = Math.floor((Number(alpha) - 0.1) * 10) / 10;
-  if (alphaNum < 0) {
-    alphaNum = 0;
-  }
-  sampledColor = sampledColor.replace(alpha, alphaNum.toString());
-  target.style.background = sampledColor;
-}
-
-function darking(target) {
-  let sampledColor = target.style.background;
-  if (!sampledColor) return;
-  if (!sampledColor.includes("rgba")) {
-    return;
-    //sampledColor = sampledColor.replace("rgb", "rgba").replace(")", ", 1)");
-  }
-  const alpha = sampledColor.slice(
-    sampledColor.lastIndexOf(",") + 1,
-    sampledColor.length - 1
-  );
-  let alphaNum = Math.floor((Number(alpha) + 0.1) * 10) / 10;
-  if (alphaNum > 1) {
-    alphaNum = 1;
-  }
-  sampledColor = sampledColor.replace(alpha, alphaNum.toString());
-  target.style.background = sampledColor;
+  target.style.background = pickerFillColor;
 }
 
 const drawEvents = {
   mouseEnter: (e) => {
-    if (setup.paint) {
+    if (paint) {
       drawing(e.target);
     }
   },
   mouseDown: (e) => {
-    setup.paint = true;
+    paint = true;
     drawing(e.target);
   },
   mouseUp: () => {
-    setup.paint = false;
+    paint = false;
   },
 };
 
@@ -261,6 +231,18 @@ function drawListen(boardCells) {
     cell.addEventListener("mousedown", drawEvents.mouseDown);
     cell.addEventListener("mouseup", drawEvents.mouseUp);
   });
+}
+
+function sampling(target) {
+  let sampledColor = target.style.background;
+  if (!sampledColor) return;
+  if (!sampledColor.includes("rgba")) {
+    sampledColor = sampledColor.replace("rgb", "rgba").replace(")", ", 1)");
+  }
+  const gnd = document.querySelector(".container_pen>.pickr>button");
+  gnd.setAttribute("style", sampledColor);
+  const root = document.documentElement;
+  root.style.setProperty("--pcr-color", sampledColor);
 }
 
 const sampleEvents = {
@@ -276,42 +258,46 @@ function sampleListen(boardCells) {
   });
 }
 
-const rubberEvents = {
+function erasing(target) {
+  target.style.background = "";
+}
+
+const eraserEvents = {
   mouseEnter: (e) => {
-    if (setup.paint) {
-      rubbing(e.target);
+    if (paint) {
+      erasing(e.target);
     }
   },
   mouseDown: (e) => {
-    setup.paint = true;
-    rubbing(e.target);
+    paint = true;
+    erasing(e.target);
   },
   mouseUp: () => {
-    setup.paint = false;
+    paint = false;
   },
 };
 
-function rubberListen(boardCells) {
+function eraserListen(boardCells) {
   removeBoardListener(boardCells);
   boardCells.forEach((cell) => {
-    cell.addEventListener("mouseenter", rubberEvents.mouseEnter);
-    cell.addEventListener("mousedown", rubberEvents.mouseDown);
-    cell.addEventListener("mouseup", rubberEvents.mouseUp);
+    cell.addEventListener("mouseenter", eraserEvents.mouseEnter);
+    cell.addEventListener("mousedown", eraserEvents.mouseDown);
+    cell.addEventListener("mouseup", eraserEvents.mouseUp);
   });
 }
 
 const lighterEvents = {
   mouseEnter: (e) => {
-    if (setup.paint) {
-      lighting(e.target);
+    if (paint) {
+      updateAlphaChannel(e.target, true);
     }
   },
   mouseDown: (e) => {
-    setup.paint = true;
-    lighting(e.target);
+    paint = true;
+    updateAlphaChannel(e.target, true);
   },
   mouseUp: () => {
-    setup.paint = false;
+    paint = false;
   },
 };
 
@@ -326,16 +312,16 @@ function lightenListen(boardCells) {
 
 const darkerEvents = {
   mouseEnter: (e) => {
-    if (setup.paint) {
-      darking(e.target);
+    if (paint) {
+      updateAlphaChannel(e.target, false);
     }
   },
   mouseDown: (e) => {
-    setup.paint = true;
-    darking(e.target);
+    paint = true;
+    updateAlphaChannel(e.target, false);
   },
   mouseUp: () => {
-    setup.paint = false;
+    paint = false;
   },
 };
 
@@ -348,11 +334,17 @@ function darkenListen(boardCells) {
   });
 }
 
-function buttonListen(boardCells) {
+function buttonActiveStyle(buttonName) {
+  buttons[buttonName].style.background = "rgb(140, 140, 140)";
+  buttons[buttonName].style.color = "rgb(99, 226, 103)";
+}
+
+function buttonListen() {
+  const boardCells = document.querySelectorAll("main>p>div");
   const menuButtons = {
     draw: () => {
       restoreButtons();
-      buttons.draw.style.background = "aqua";
+      buttonActiveStyle("draw");
       drawListen(boardCells);
     },
     fill: () => {
@@ -361,22 +353,22 @@ function buttonListen(boardCells) {
     },
     sample: () => {
       restoreButtons();
-      buttons.sample.style.background = "aqua";
+      buttonActiveStyle("sample");
       sampleListen(boardCells);
     },
-    rubber: () => {
+    eraser: () => {
       restoreButtons();
-      buttons.rubber.style.background = "aqua";
-      rubberListen(boardCells);
+      buttonActiveStyle("eraser");
+      eraserListen(boardCells);
     },
     ligthen: () => {
       restoreButtons();
-      buttons.ligthen.style.background = "aqua";
+      buttonActiveStyle("ligthen");
       lightenListen(boardCells);
     },
     darken: () => {
       restoreButtons();
-      buttons.darken.style.background = "aqua";
+      buttonActiveStyle("darken");
       darkenListen(boardCells);
     },
   };
@@ -389,19 +381,23 @@ function buttonListen(boardCells) {
   });
 }
 
-let setup = {
-  paint: false,
-  draw: true,
-  rubber: false,
-  ligthen: false,
-  darken: false,
-};
+function mainListen() {
+  const main = document.querySelector("main");
+  main.addEventListener("mouseup", () => {
+    paint = false;
+  });
+  main.addEventListener("mousedown", () => {
+    paint = true;
+  });
+}
+
+let paint = false;
 
 function main() {
   updateFooter();
   createBoard(16, 25);
-  const board = document.querySelectorAll("main>p>div");
-  buttonListen(board);
+  mainListen();
+  buttonListen();
 }
 
 main();

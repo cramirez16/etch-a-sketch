@@ -3,26 +3,25 @@ body {
   justify-content: center;
   width: 100vw;
   height: 100vh;
-  text-align: center;
   margin: 0;
   padding: 0;
   background: black;
-  color: white;
-  border: 1px solid white;
   box-sizing: border-box;
 }
 
 .main-container {
   display: flex;
   flex-direction: column;
-  width: 800px;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 700px;
 }
 
 header {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
+  width: 520px;
   padding: 16px 0px;
   background: black;
 }
@@ -37,21 +36,27 @@ header {
 
 .container {
   display: flex;
+  height: 530px;
   width: 100%;
-  height: 100%;
   justify-content: left;
   align-items: center;
-  border-radius: 100px;
-  overflow: hidden;
+  gap: 32px;
 }
+
 aside {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  flex: 0 0 200px;
+  flex: 0 0 145px;
   height: 100%;
-  background: grey;
+  background: black;
   gap: 16px;
+}
+
+.container_pen,
+.container_background {
+  padding: 5px 0px;
+  background: rgb(65, 65, 65);
 }
 
 .container_pen,
@@ -61,8 +66,6 @@ button {
   flex-direction: row;
   width: 100%;
   gap: 16px;
-  /* border: none; */
-  border-color: rgb(153, 255, 255);
   border-radius: 5px;
 }
 
@@ -77,12 +80,19 @@ button {
   margin-left: 10%;
   padding: 5px 10px;
   justify-content: center;
+  font-family: "Sprinkled", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: rgb(230, 214, 187);
+  background: rgb(108, 108, 108);
+  box-shadow: 5px 5px 4px rgba(0, 0, 0, 0.2);
 }
 
 .container_pen > button:hover,
 .container_background > button:hover,
 .container_buttons > button:hover {
-  background: rgb(153, 255, 255) !important;
+  color: rgb(99, 226, 103);
+  background: rgb(140, 140, 140) !important;
 }
 
 main {
@@ -91,8 +101,10 @@ main {
   justify-content: center;
   align-items: center;
   flex: 1;
-  background: rgb(188, 188, 188);
+  background: rgb(140, 140, 140);
   height: 100%;
+  border-radius: 100px;
+  overflow: hidden;
 }
 
 main > p {
@@ -104,7 +116,7 @@ footer {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
+  width: 520px;
   gap: 16px;
   color: rgb(230, 214, 187);
   background: black;
