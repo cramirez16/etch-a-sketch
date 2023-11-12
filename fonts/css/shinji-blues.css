@@ -1,0 +1,6 @@
+@font-face {
+  font-family: "SHINJI BLUES";
+  font-style: normal;
+  font-weight: 400;
+  src: local("SHINJI BLUES"), url("../shinjiblues.woff") format("woff");
+}

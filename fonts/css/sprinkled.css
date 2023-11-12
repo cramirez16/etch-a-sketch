@@ -1,0 +1,6 @@
+@font-face {
+  font-family: "Sprinkled";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Sprinkled"), url("../sprinkled.woff") format("woff");
+}

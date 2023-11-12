@@ -1,0 +1,7 @@
+@font-face {
+  font-family: "Gregory Packaging";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Gregory Packaging"),
+    url("../gregory-packaging.woff") format("woff");
+}
